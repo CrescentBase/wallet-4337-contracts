@@ -20,6 +20,7 @@ import { expect } from 'chai'
 import { Create2Factory } from '../src/Create2Factory'
 import { debugTransaction } from './debugTx'
 import { UserOperation } from './UserOperation'
+import crypto from "crypto";
 
 export const AddressZero = ethers.constants.AddressZero
 export const HashZero = ethers.constants.HashZero
@@ -306,4 +307,14 @@ export async function createAccount (
     accountFactory,
     proxy
   }
+}
+
+
+export function tohex(str: string): string  {
+  return '0x' + Buffer.from(str).toString("hex");
+}
+
+
+export function shaHashHex(str: string): string {
+  return '0x' + crypto.createHash("sha256").update(str).digest().toString('hex')
 }

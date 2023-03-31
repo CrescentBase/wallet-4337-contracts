@@ -42,7 +42,14 @@ const config: HardhatUserConfig = {
       settings: {
         optimizer: { enabled: true, runs: 1000000 }
       }
-    }],
+    },
+    {
+      version: '0.6.11'
+    },
+    {
+      version: '0.6.2'
+    }
+  ],
     overrides: {
       'contracts/core/EntryPoint.sol': optimizedComilerSettings,
       'contracts/samples/SimpleAccount.sol': optimizedComilerSettings
