@@ -3,10 +3,13 @@ import '@typechain/hardhat'
 import { HardhatUserConfig } from 'hardhat/config'
 import 'hardhat-deploy'
 import '@nomiclabs/hardhat-etherscan'
+import dotenv from 'dotenv';
 
 import 'solidity-coverage'
 
 import * as fs from 'fs'
+
+dotenv.config();
 
 const mnemonicFileName = process.env.MNEMONIC_FILE ?? `${process.env.HOME}/.secret/testnet-mnemonic.txt`
 let mnemonic = 'test '.repeat(11) + 'junk'
@@ -61,14 +64,18 @@ const config: HardhatUserConfig = {
     localgeth: { url: 'http://localgeth:8545' },
     goerli: getNetwork('goerli'),
     sepolia: getNetwork('sepolia'),
-    proxy: getNetwork1('http://localhost:8545')
+    proxy: getNetwork1('http://localhost:8545'),
+    polygon: getNetwork('polygon-mainnet'),
+    arb: getNetwork('arbitrum-mainnet'),
+    bsc: getNetwork1(process.env.RPC_BSC ?? `https://bsc-dataseed4.defibit.io`),
+    ethereum: process.env.RPC_ETHEREUM ? getNetwork1(process.env.RPC_ETHEREUM) : getNetwork('mainnet')
   },
   mocha: {
     timeout: 10000
   },
 
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY
+    apiKey: process.env.POLYGONSCAN_API_KEY
   }
 
 }
