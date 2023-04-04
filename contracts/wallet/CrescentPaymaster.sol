@@ -33,6 +33,12 @@ contract CrescentPaymaster is CrescentBasePaymaster, Initializable {
     mapping(address => uint256) public senderNonce;
 
     function initialize(address _create2Factory, address _entryPointController, address _walletController, address _dkimVerifier, address _verifyingSigner) external initializer {
+        require(_create2Factory != address(0), "invalid create2Factory");
+        require(_entryPointController != address(0), "invalid entryPointController");
+        require(_walletController != address(0), "invalid walletController");
+        require(_dkimVerifier != address(0), "invalid dkimVerifier");
+        require(_verifyingSigner != address(0), "invalid verifyingSigner");
+        
         _transferOwnership(_msgSender());
         create2Factory = _create2Factory;
         entryPointController = EntryPointController(payable(_entryPointController));

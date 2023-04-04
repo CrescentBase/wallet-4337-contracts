@@ -47,6 +47,8 @@ contract CrescentWallet is BaseAccount, Initializable {
     }
 
     function initialize(address _entryPointController, address _dkimVerifier, bytes32 _hmua) external initializer {
+        require(_entryPointController != address(0), "invalid entryPointController");
+        require(_dkimVerifier != address(0), "invalid dkimVerifier");
         entryPointController = EntryPointController(payable(_entryPointController));
         dkimVerifier = _dkimVerifier;
         hmua = _hmua;

@@ -346,7 +346,57 @@ const depositTo: DeployFunction = async function (hre: HardhatRuntimeEnvironment
 
 };
 
+const unlockStake: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const provider = ethers.provider;
+  const from = await provider.getSigner().getAddress();
+  console.log("unlockStake, from:", from);
+  
+  const paymasterProxyAddress = "0x2F2DBb9002C22b313b4FcD840Dbf740F4034E037";
+
+  const paymasterFactory = await ethers.getContractFactory("CrescentPaymaster")
+  const paymaster = paymasterFactory.attach(paymasterProxyAddress);
+
+  try {
+    console.log(`unlockStake start`);
+    const unlockStakeRep = await (await paymaster.unlockStake()).wait(WAIT_BLOCK_CONFIRMATIONS);
+    console.log(`unlockStake end, gas used`, unlockStakeRep.gasUsed);
+  } catch (e) {
+      console.log("unlockStake", e);
+  }
+};
+
+const withdrawStakeAndDeposit: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const provider = ethers.provider;
+  const from = await provider.getSigner().getAddress();
+  console.log("withdrawStakeAndDeposit, from:", from);
+  
+  const paymasterProxyAddress = "0x2F2DBb9002C22b313b4FcD840Dbf740F4034E037";
+
+  const paymasterFactory = await ethers.getContractFactory("CrescentPaymaster")
+  const paymaster = paymasterFactory.attach(paymasterProxyAddress);
+
+  try {
+    console.log(`withdrawStake start`);
+    const withdrawStakeRep = await (await paymaster.withdrawStake(from)).wait(WAIT_BLOCK_CONFIRMATIONS);
+    console.log(`withdrawStake end, gas used`, withdrawStakeRep.gasUsed);
+  } catch (e) {
+    console.log("withdrawStake", e);
+  }
+
+  try {
+    console.log(`withdrawDeposit start`);
+    const deposit = await paymaster.getDeposit();
+    console.log(`withdrawDeposit deposit:`, deposit);
+    const withdrawToRep = await (await paymaster.withdrawTo(from, deposit)).wait(WAIT_BLOCK_CONFIRMATIONS);
+    console.log(`withdrawDeposit end, gas used`, withdrawToRep.gasUsed);
+  } catch (e) {
+      console.log("withdrawDeposit", e);
+  }
+};
+
 // export default verifyCrescentWallet
 // export default addDkim
-export default depositTo
+// export default depositTo
+// export default unlockStake
+export default withdrawStakeAndDeposit
 // export default deployCrescentWallet

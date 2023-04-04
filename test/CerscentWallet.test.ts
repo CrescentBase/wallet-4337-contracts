@@ -256,8 +256,8 @@ describe('test CerscentWallet', function () {
                 sender: preAddr,
                 initCode: initCode,
                 callData: calldata,
-                callGasLimit: 4e6,//2e6 //10000000 //49116 * 20
-                verificationGasLimit : "0x583fbd",
+                callGasLimit: 2e6,//2e6 //10000000 //49116 * 20
+                // verificationGasLimit : "0x583fbd",
                 // preVerificationGas: "0x21648",
                 // maxFeePerGas: "0x1ff148c239",
                 // maxPriorityFeePerGas: "0x805801315",

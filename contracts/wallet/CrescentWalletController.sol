@@ -8,10 +8,12 @@ contract CrescentWalletController is Ownable {
     address implementation;
 
     constructor(address _implementation){
+        require(_implementation != address(0), "invalid implementation");
         implementation = _implementation;
     }
 
     function setImplementation(address _implementation) public onlyOwner {
+        require(_implementation != address(0), "invalid implementation");
         implementation = _implementation;
     }
 
