@@ -43,6 +43,8 @@ const deployCrescentWallet: DeployFunction = async function (hre: HardhatRuntime
     const entryPointAddress = entryPoint.address;
     console.log(`Deployed EntryPoint contract to: ${entryPointAddress}, gas used ${entryPointRep.gasUsed}`)
 
+    // const entryPointAddress = "0x22DAe313353AD967abC517E421BC1323a4aE65EE";
+
     //========================= EntryPointController ===============================
     console.log(`Deployed EntryPointController contract start`)
     const entryPointControllerFactory = await ethers.getContractFactory("EntryPointController")
@@ -52,6 +54,7 @@ const deployCrescentWallet: DeployFunction = async function (hre: HardhatRuntime
     const entryPointControllerAddress = entryPointController.address;
     console.log(`Deployed EntryPointController contract to: ${entryPointControllerAddress}, gas used ${entryPointControllerRep.gasUsed}`)
 
+    // const entryPointControllerAddress = '0xba53996bE4100e2DAEAFCD00c2F569561BF34D5b';
 
     //========================= DKIMManager ===============================
     console.log(`Deployed DKIMManager contract start`)
@@ -62,6 +65,8 @@ const deployCrescentWallet: DeployFunction = async function (hre: HardhatRuntime
     const dkimManagerAddress = dkimManager.address;
     console.log(`Deployed DKIMManager contract to: ${dkimManagerAddress}, gas used ${dkimManagerRep.gasUsed}`)
 
+    // const dkimManagerAddress = "0xEfe5569cF88852Fe13A8d8E238765b5a4c3C9c1b";
+
     //========================= ProofVerifier ===============================
     console.log(`Deployed ProofVerifier contract start`)
     const proofVerifierFactory = await ethers.getContractFactory("Verifier");
@@ -71,6 +76,8 @@ const deployCrescentWallet: DeployFunction = async function (hre: HardhatRuntime
     const proofVerifierAddress = proofVerifier.address;
     console.log(`Deployed ProofVerifier contract to: ${proofVerifierAddress}, gas used ${proofVerifierRep.gasUsed}`)
 
+    // const proofVerifierAddress = "0xA7D1Ad536f460eee397DEc9298595DaD74139c28";
+
     //========================= SolRsaVerify ===============================
     console.log(`Deployed SolRsaVerify contract start`)
     const rsaVerifierFactory = await ethers.getContractFactory("SolRsaVerify");
@@ -79,7 +86,8 @@ const deployCrescentWallet: DeployFunction = async function (hre: HardhatRuntime
 
     const rsaVerifyAddress = rsaVerify.address;
     console.log(`Deployed SolRsaVerify contract to: ${rsaVerifyAddress}, gas used ${rsaVerifyRep.gasUsed}`)
-
+    
+    // const rsaVerifyAddress = "0x95193C759C00Cc62434537C57A6b5B75C9FFd48f";
 
     //========================= DKIMVerifier ===============================
     console.log(`Deployed DKIMVerifier contract start`)
@@ -89,6 +97,8 @@ const deployCrescentWallet: DeployFunction = async function (hre: HardhatRuntime
 
     const dkimVerifierAddress = dkimVerifier.address;
     console.log(`Deployed DKIMVerifier contract to: ${dkimVerifierAddress}, gas used ${dkimVerifierRep.gasUsed}`)
+
+    // const dkimVerifierAddress = "0xafcABB6ED2Bc58b09087D6D2e199B339ccF5A848";
 
 
     //========================= DKIMVerifierProxy ===============================
@@ -154,25 +164,25 @@ const deployCrescentWallet: DeployFunction = async function (hre: HardhatRuntime
       console.log(`setEntryPoint start`);
       const setEntryPointRep = await (await entryPointController.setEntryPoint(entryPoint.address)).wait(WAIT_BLOCK_CONFIRMATIONS);
       console.log(`setEntryPoint end, gas used`, setEntryPointRep.gasUsed);
+
+      try {
+        console.log(`addStake start`);
+        const addStakeRep = await (await paymasterFactory.attach(paymasterProxyAddress).addStake(100, { value: ethers.utils.parseEther('0.01') })).wait(WAIT_BLOCK_CONFIRMATIONS);
+        console.log(`addStake end, gas used`, addStakeRep.gasUsed);
+      } catch (e) {
+        console.log("addStake", e);
+      }
+
+      try {
+        console.log(`depositTo start`);
+        const depositToRep = await (await paymasterFactory.attach(paymasterProxyAddress).deposit({ value: ethers.utils.parseEther('0.1') })).wait(WAIT_BLOCK_CONFIRMATIONS);
+        console.log(`depositTo end, gas used`, depositToRep.gasUsed);
+      } catch (e) {
+          console.log("depositTo", e);
+      }
+
     } catch (e) {
       console.log("setEntryPoint", e);
-    }
-
-
-    try {
-      console.log(`addStake start`);
-      const addStakeRep = await (await paymasterFactory.attach(paymasterProxyAddress).addStake(100, { value: ethers.utils.parseEther('0.01') })).wait(WAIT_BLOCK_CONFIRMATIONS);
-      console.log(`addStake end, gas used`, addStakeRep.gasUsed);
-    } catch (e) {
-      console.log("addStake", e);
-    }
-
-    try {
-      console.log(`depositTo start`);
-      const depositToRep = await (await entryPointFactory.attach(entryPointAddress).depositTo(paymasterProxy.address, { value: ethers.utils.parseEther('0.1') })).wait(WAIT_BLOCK_CONFIRMATIONS);
-      console.log(`depositTo end, gas used`, depositToRep.gasUsed);
-    } catch (e) {
-        console.log("depositTo", e);
     }
 
     await verifyContract(
@@ -217,7 +227,7 @@ const verifyContract = async (
 
     await verify(dkimVerifierAddress, []);
 
-    await verify(dkimVerifierProxyAddress, [dkimVerifierAddress, dkimManagerAddress, proofVerifierAddress, rsaVerifyAddress]);
+    await verify(dkimVerifierProxyAddress, [dkimVerifierAddress, dkimManagerAddress, proofVerifierAddress, rsaVerifyAddress], 'contracts/verify/DKIMVerifierProxy.sol:DKIMVerifierProxy');
 
     await verify(walletAddress, []);
 
@@ -236,30 +246,30 @@ const verifyCrescentWallet: DeployFunction = async function (hre: HardhatRuntime
   console.log("verifyCrescentWallet, from:", from);
 
 
-  const entryPointAddress = '0x7CEf2B7e2499EC9bcD3b25788133634C5ea49295';
+  const entryPointAddress = '0x22DAe313353AD967abC517E421BC1323a4aE65EE';
 
-  const entryPointControllerAddress = '0x53b4a3C94487c911d76692cf45809E19ad9f4912';
+  const entryPointControllerAddress = '0xba53996bE4100e2DAEAFCD00c2F569561BF34D5b';
 
-  const dkimManagerAddress = '0x5b3b9022754514ED22416d77384C8f3f09439Eb0';
+  const dkimManagerAddress = '0xEfe5569cF88852Fe13A8d8E238765b5a4c3C9c1b';
 
-  const proofVerifierAddress = '0x7a163e58C209d8cB098D0449089D0101b055e4E2';
+  const proofVerifierAddress = '0xA7D1Ad536f460eee397DEc9298595DaD74139c28';
 
-  const rsaVerifyAddress = '0x460fE627C1Be0b7353E4C282bF12A513F31B92eB';
+  const rsaVerifyAddress = '0x95193C759C00Cc62434537C57A6b5B75C9FFd48f';
 
-  const dkimVerifierAddress = '0xaD6954B6203CF067A73EB3EFcf4946a30aa23015';
+  const dkimVerifierAddress = '0xafcABB6ED2Bc58b09087D6D2e199B339ccF5A848';
 
-  const dkimVerifierProxyAddress = '0x3b523F035fDDbC0ea5cf0eED0c5Ac749502091ce';
+  const dkimVerifierProxyAddress = '0x32B46859E4bB8E9294DF1C5135fd5fFeEEE75a5B';
 
 
-  const walletAddress = "0x516A7BB75cB00E6B51bD7Df0Dd3ffc7C9B6aC7B5";
+  const walletAddress = "0xF641D8C0e7A3e627FF2D3038fD90f890c9e68e45";
 
-  const walletControllerAddress = "0x88976a08C66B6B12449444213ab02eD61df4FF20";
+  const walletControllerAddress = "0x95d76Dd0Df6F3d41C7d5247D2d8B05b5f1006215";
 
-  const walletProxyAddress = "0xb35996E1d4C6be6b6F544458939936caA48172b7";
+  const walletProxyAddress = "0x9138eB248bD1F1B0973e22e95Cdb993c877dd652";
 
-  const paymasterAddress = "0xBC2fC30D3F12F7c082dD84937733B03445A30Dc9";
+  const paymasterAddress = "0x6df8097205Da4ec69825783515A84F80877D9051";
 
-  const paymasterProxyAddress = "0x2F2DBb9002C22b313b4FcD840Dbf740F4034E037";
+  const paymasterProxyAddress = "0xAC5996D3865ff1662e9dc4Ecb31a2b5Ade91583a";
 
   await verifyContract(
     entryPointAddress,
@@ -283,7 +293,7 @@ const addDkim: DeployFunction = async function (hre: HardhatRuntimeEnvironment) 
   const from = await provider.getSigner().getAddress();
   console.log("addDkim from:", from);
 
-  const dkimManagerAddress = '0x50c18f1e36174E8bC852bc7A240C968AC11fba07';
+  const dkimManagerAddress = '0xEfe5569cF88852Fe13A8d8E238765b5a4c3C9c1b';
 
   const dkimManagerFactory = await ethers.getContractFactory("DKIMManager");
   const dkimManager = dkimManagerFactory.attach(dkimManagerAddress);
@@ -326,24 +336,61 @@ const addDkim: DeployFunction = async function (hre: HardhatRuntimeEnvironment) 
   }
 };
 
+const setEntryPoint: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const provider = ethers.provider;
+  const from = await provider.getSigner().getAddress();
+  console.log("setEntryPoint, from:", from);
+  
+  const entryPointAddress = "0x22DAe313353AD967abC517E421BC1323a4aE65EE";
+  const entryPointControllerAddress = '0xba53996bE4100e2DAEAFCD00c2F569561BF34D5b';
+
+  const entryPointControllerFactory = await ethers.getContractFactory("EntryPointController")
+  const entryPointController = entryPointControllerFactory.attach(entryPointControllerAddress);
+
+  try {
+    console.log(`setEntryPoint start`);
+    const setEntryPointRep = await (await entryPointController.setEntryPoint(entryPointAddress)).wait(WAIT_BLOCK_CONFIRMATIONS);
+    console.log(`setEntryPoint end, gas used`, setEntryPointRep.gasUsed);
+  } catch (e) {
+    console.log("setEntryPoint", e);
+  }
+};
+
+const addStake: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const provider = ethers.provider;
+  const from = await provider.getSigner().getAddress();
+  console.log("addStake, from:", from);
+  
+  const paymasterProxyAddress = "0xAC5996D3865ff1662e9dc4Ecb31a2b5Ade91583a";
+
+  const paymasterFactory = await ethers.getContractFactory("CrescentPaymaster")
+
+  try {
+    console.log(`addStake start`);
+    const addStakeRep = await (await paymasterFactory.attach(paymasterProxyAddress).addStake(100, { value: ethers.utils.parseEther('0.01') })).wait(WAIT_BLOCK_CONFIRMATIONS);
+    console.log(`addStake end, gas used`, addStakeRep.gasUsed);
+  } catch (e) {
+    console.log("addStake", e);
+  }
+};
+
 const depositTo: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const provider = ethers.provider;
   const from = await provider.getSigner().getAddress();
   console.log("depositTo, from:", from);
   
-  const entryPointAddress = '0x7CEf2B7e2499EC9bcD3b25788133634C5ea49295';
+  const entryPointAddress = '0x22DAe313353AD967abC517E421BC1323a4aE65EE';
 
-  const paymasterProxyAddress = "0x2F2DBb9002C22b313b4FcD840Dbf740F4034E037";
+  const paymasterProxyAddress = "0xAC5996D3865ff1662e9dc4Ecb31a2b5Ade91583a";
 
   try {
     const entryPointFactory = await ethers.getContractFactory("EntryPoint")
     console.log(`depositTo start`);
-    const depositToRep = await (await entryPointFactory.attach(entryPointAddress).depositTo(paymasterProxyAddress, { value: ethers.utils.parseEther('3') })).wait(WAIT_BLOCK_CONFIRMATIONS);
+    const depositToRep = await (await entryPointFactory.attach(entryPointAddress).depositTo(paymasterProxyAddress, { value: ethers.utils.parseEther('5') })).wait(WAIT_BLOCK_CONFIRMATIONS);
     console.log(`depositTo end, gas used`, depositToRep.gasUsed);
   } catch (e) {
       console.log("depositTo", e);
   }
-
 };
 
 const unlockStake: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -351,7 +398,7 @@ const unlockStake: DeployFunction = async function (hre: HardhatRuntimeEnvironme
   const from = await provider.getSigner().getAddress();
   console.log("unlockStake, from:", from);
   
-  const paymasterProxyAddress = "0x2F2DBb9002C22b313b4FcD840Dbf740F4034E037";
+  const paymasterProxyAddress = "0xAC5996D3865ff1662e9dc4Ecb31a2b5Ade91583a";
 
   const paymasterFactory = await ethers.getContractFactory("CrescentPaymaster")
   const paymaster = paymasterFactory.attach(paymasterProxyAddress);
@@ -370,7 +417,7 @@ const withdrawStakeAndDeposit: DeployFunction = async function (hre: HardhatRunt
   const from = await provider.getSigner().getAddress();
   console.log("withdrawStakeAndDeposit, from:", from);
   
-  const paymasterProxyAddress = "0x2F2DBb9002C22b313b4FcD840Dbf740F4034E037";
+  const paymasterProxyAddress = "0xAC5996D3865ff1662e9dc4Ecb31a2b5Ade91583a";
 
   const paymasterFactory = await ethers.getContractFactory("CrescentPaymaster")
   const paymaster = paymasterFactory.attach(paymasterProxyAddress);
@@ -394,9 +441,11 @@ const withdrawStakeAndDeposit: DeployFunction = async function (hre: HardhatRunt
   }
 };
 
+// export default deployCrescentWallet
 // export default verifyCrescentWallet
+// export default setEntryPoint
+// export default addStake
 // export default addDkim
 // export default depositTo
 // export default unlockStake
-export default withdrawStakeAndDeposit
-// export default deployCrescentWallet
+// export default withdrawStakeAndDeposit

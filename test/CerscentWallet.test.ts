@@ -285,6 +285,9 @@ describe('test CerscentWallet', function () {
           const [log] = await entryPoint.queryFilter(entryPoint.filters.UserOperationEvent(), rcpt.blockHash)
           expect(log.args.success, 'call handleOps').to.eq(true)
 
+          expect(await walletFactory.attach(preAddr).hmua(), 'checke hmua').to.eq(hmua)
+          
+
           const op2 = await fillAndSign({
             sender: preAddr,
             callData: calldata,
