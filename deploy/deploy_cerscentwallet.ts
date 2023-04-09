@@ -341,7 +341,7 @@ const setEntryPoint: DeployFunction = async function (hre: HardhatRuntimeEnviron
   const from = await provider.getSigner().getAddress();
   console.log("setEntryPoint, from:", from);
   
-  const entryPointAddress = "0x22DAe313353AD967abC517E421BC1323a4aE65EE";
+  const entryPointAddress = "0x0576a174D229E3cFA37253523E645A78A0C91B57";
   const entryPointControllerAddress = '0xba53996bE4100e2DAEAFCD00c2F569561BF34D5b';
 
   const entryPointControllerFactory = await ethers.getContractFactory("EntryPointController")
@@ -379,14 +379,13 @@ const depositTo: DeployFunction = async function (hre: HardhatRuntimeEnvironment
   const from = await provider.getSigner().getAddress();
   console.log("depositTo, from:", from);
   
-  const entryPointAddress = '0x22DAe313353AD967abC517E421BC1323a4aE65EE';
-
   const paymasterProxyAddress = "0xAC5996D3865ff1662e9dc4Ecb31a2b5Ade91583a";
 
+  const paymasterFactory = await ethers.getContractFactory("CrescentPaymaster")
+
   try {
-    const entryPointFactory = await ethers.getContractFactory("EntryPoint")
     console.log(`depositTo start`);
-    const depositToRep = await (await entryPointFactory.attach(entryPointAddress).depositTo(paymasterProxyAddress, { value: ethers.utils.parseEther('5') })).wait(WAIT_BLOCK_CONFIRMATIONS);
+    const depositToRep = await (await paymasterFactory.attach(paymasterProxyAddress).deposit({ value: ethers.utils.parseEther('0.14') })).wait(WAIT_BLOCK_CONFIRMATIONS);
     console.log(`depositTo end, gas used`, depositToRep.gasUsed);
   } catch (e) {
       console.log("depositTo", e);
@@ -446,6 +445,6 @@ const withdrawStakeAndDeposit: DeployFunction = async function (hre: HardhatRunt
 // export default setEntryPoint
 // export default addStake
 // export default addDkim
-// export default depositTo
+export default depositTo
 // export default unlockStake
 // export default withdrawStakeAndDeposit
