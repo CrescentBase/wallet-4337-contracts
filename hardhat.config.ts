@@ -75,7 +75,7 @@ const config: HardhatUserConfig = {
   },
 
   etherscan: {
-    apiKey: process.env.BSCSCAN_API_KEY
+    apiKey: process.env.ARBSCAN_API_KEY
   }
 
 }

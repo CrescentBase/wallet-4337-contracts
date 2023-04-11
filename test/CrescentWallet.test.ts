@@ -7,15 +7,14 @@ import { fillAndSign, fillUserOp } from './UserOp'
 
 import { BigNumber, Wallet } from 'ethers'
 
+import crypto from "crypto";
 
 import {
     AddressZero,
-    tohex,
     fund,
     getBalance,
     getTokenBalance, rethrow,
     checkForGeth, calcGasUsage, deployEntryPoint, checkForBannedOps, createAddress, ONE_ETH,
-    shaHashHex
   } from './testutils'
 
 import { BytesLike, parseEther, arrayify, hexConcat } from 'ethers/lib/utils'
@@ -48,8 +47,17 @@ function WalletConstructor (entryPointController: string, walletController: stri
     return new CrescentWalletProxy__factory(ethers.provider.getSigner()).getDeployTransaction(entryPointController, walletController, dkimVerifierProxy, hmua).data!
 }
 
+export function tohex(str: string): string  {
+    return '0x' + Buffer.from(str).toString("hex");
+}
 
-describe('test CerscentWallet', function () {
+
+export function shaHashHex(str: string): string {
+  return '0x' + crypto.createHash("sha256").update(str).digest().toString('hex')
+}
+
+
+describe('test CrescentWallet', function () {
     const ethersSigner = ethers.provider.getSigner()
     let dkimManager: DKIMManager;
     let proofVerifier: Verifier;
@@ -151,12 +159,12 @@ describe('test CerscentWallet', function () {
     })
 
 
-    it("CerscentWallet DKIMManager", async () => {
+    it("CrescentWallet DKIMManager", async () => {
         await dkimManager.upgradeDKIM(ds, _dkim);
         expect(await dkimManager.dkim(ds)).to.equal(_dkim);
     })
 
-    it("CerscentWallet check entryPoint", async function name() {
+    it("CrescentWallet check entryPoint", async function name() {
       await (await entryPointController.setEntryPoint(entryPoint.address)).wait();
 
       expect((await walletFactory.attach(walletProxy.address).entryPoint()).toLowerCase(), 'wallet entryPoint').to.equal(entryPoint.address.toLowerCase());
@@ -164,13 +172,13 @@ describe('test CerscentWallet', function () {
       expect((await paymasterFactory.attach(paymasterProxy.address).entryPoint()).toLowerCase(), 'paymaster entryPoint').to.equal(entryPoint.address.toLowerCase());
     })
 
-    it("CerscentWallet walletProxy", async function name() {
+    it("CrescentWallet walletProxy", async function name() {
       expect(await walletProxy.getAutoUpdateImplementation()).to.equal(false);
       // await walletProxy.setAutoUpdateImplementation(true);
       expect(await walletProxy.getImplementation(), "getImplementation").to.equal(wallet.address);
     })
 
-    it("CerscentWallet Paymaster", async function name() {
+    it("CrescentWallet Paymaster", async function name() {
       const paymaster = paymasterFactory.attach(paymasterProxy.address);
       expect(await paymaster.verifyingSigner(), "verifyingSigner").to.equal(prefundAccountAddress);
 
@@ -184,7 +192,7 @@ describe('test CerscentWallet', function () {
     })
 
 
-    it("CerscentWallet dkimVerifier", async function name() {
+    it("CrescentWallet dkimVerifier", async function name() {
       const dkimVerifier = dkimVerifierFactory.attach(dkimVerifierProxy.address);
       expect(await dkimVerifier.dkimManager(), "dkimManager").to.equal(dkimManager.address);
 
@@ -195,7 +203,7 @@ describe('test CerscentWallet', function () {
     })
 
     
-    it("CerscentWallet create sender", async function name() {
+    it("CrescentWallet create sender", async function name() {
         const a: [string, string] = [
           '0x1415ff5ce3d96946c2f0c6fe29b8b1a0ea70395522d23c141e38195b84cc5b86',
           '0x0ec78471ce88b5787814ea48bc6da06740b67823231955042e66f71b4bf8577c'
@@ -326,7 +334,7 @@ describe('test CerscentWallet', function () {
         expect((await paymasterFactory.attach(paymasterProxy.address).getWallet(hmua)).toLowerCase(), "getWallet").to.equal(op.sender.toLowerCase());
     })
 
-    it("CerscentPaymaster test tranfer", async function name() {
+    it("CrescentPaymaster test tranfer", async function name() {
       await (await ethersSigner.sendTransaction({
         to: preAddr,
         value: parseEther('10')
@@ -354,7 +362,7 @@ describe('test CerscentWallet', function () {
     });
   
 
-    it("CerscentWallet setAutoUpdateImplementation", async function name() {
+    it("CrescentWallet setAutoUpdateImplementation", async function name() {
         await entryPoint.depositTo(preAddr, { value: parseEther('10') });
 
         expect(await walletProxyFactory.attach(preAddr).getAutoUpdateImplementation(), "getAutoUpdateImplementation").to.equal(false);
@@ -376,7 +384,7 @@ describe('test CerscentWallet', function () {
     });
 
 
-    it("CerscentPaymaster paymaster support wallet", async function name() {
+    it("CrescentPaymaster paymaster support wallet", async function name() {
         let paymasterView = await paymasterFactory.attach(paymasterProxy.address);
 
         expect(await paymasterView.supportWallet(preAddr), "supportWallet").to.equal(true);
@@ -384,13 +392,13 @@ describe('test CerscentWallet', function () {
     });
 
 
-    it("CerscentPaymaster upgradeDelegate", async function name() {
+    it("CrescentPaymaster upgradeDelegate", async function name() {
         await paymasterProxy.upgradeDelegate(walletController.address);
 
         expect((await paymasterProxy.getImplementation()).toLowerCase(), "getImplementation").to.equal(walletController.address.toLowerCase());
     });
     
-    it("CerscentPaymaster walletController", async function name() {
+    it("CrescentPaymaster walletController", async function name() {
         expect(await walletController.getImplementation()).to.equal(wallet.address);
 
         await walletController.setImplementation(paymaster.address)

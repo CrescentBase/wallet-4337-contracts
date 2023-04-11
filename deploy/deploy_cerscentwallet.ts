@@ -341,7 +341,8 @@ const setEntryPoint: DeployFunction = async function (hre: HardhatRuntimeEnviron
   const from = await provider.getSigner().getAddress();
   console.log("setEntryPoint, from:", from);
   
-  const entryPointAddress = "0x0576a174D229E3cFA37253523E645A78A0C91B57";
+  const entryPointAddress = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
+
   const entryPointControllerAddress = '0xba53996bE4100e2DAEAFCD00c2F569561BF34D5b';
 
   const entryPointControllerFactory = await ethers.getContractFactory("EntryPointController")
@@ -385,7 +386,7 @@ const depositTo: DeployFunction = async function (hre: HardhatRuntimeEnvironment
 
   try {
     console.log(`depositTo start`);
-    const depositToRep = await (await paymasterFactory.attach(paymasterProxyAddress).deposit({ value: ethers.utils.parseEther('0.14') })).wait(WAIT_BLOCK_CONFIRMATIONS);
+    const depositToRep = await (await paymasterFactory.attach(paymasterProxyAddress).deposit({ value: ethers.utils.parseEther('0.13') })).wait(WAIT_BLOCK_CONFIRMATIONS);
     console.log(`depositTo end, gas used`, depositToRep.gasUsed);
   } catch (e) {
       console.log("depositTo", e);
@@ -440,11 +441,41 @@ const withdrawStakeAndDeposit: DeployFunction = async function (hre: HardhatRunt
   }
 };
 
+
+const updateWallet: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const provider = ethers.provider;
+  const from = await provider.getSigner().getAddress();
+  console.log("updateWallet, from:", from);
+  
+  console.log(`Deployed CrescentWallet contract start`)
+  const walletFactory = await ethers.getContractFactory("CrescentWallet")
+  const wallet = await walletFactory.deploy()
+  const walletRep = await wallet.deployTransaction.wait(WAIT_BLOCK_CONFIRMATIONS)
+
+  const walletAddress = wallet.address;
+  console.log(`Deployed CrescentWallet contract to: ${walletAddress}, gas used ${walletRep.gasUsed}`)
+  // const walletAddress = '0x60465b8f77D8Bc4B4eF906923640f01439c8D9f9';
+
+  const walletControllerAddress = '0x95d76Dd0Df6F3d41C7d5247D2d8B05b5f1006215';
+
+  console.log(`walletController setImplementation  start`)
+  const walletControllerFactory = await ethers.getContractFactory("CrescentWalletController");
+  const setRep = await (await walletControllerFactory.attach(walletControllerAddress).setImplementation(walletAddress)).wait(WAIT_BLOCK_CONFIRMATIONS);
+
+  console.log(`walletController setImplementation gas used ${setRep.gasUsed}`)
+
+  await verify(walletAddress, []);
+};
+
 // export default deployCrescentWallet
 // export default verifyCrescentWallet
 // export default setEntryPoint
 // export default addStake
-// export default addDkim
 export default depositTo
+
+// export default addDkim
+
 // export default unlockStake
 // export default withdrawStakeAndDeposit
+
+// export default updateWallet

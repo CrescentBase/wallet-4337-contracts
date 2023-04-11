@@ -27,8 +27,6 @@ contract CrescentWallet is BaseAccount, Initializable {
     using UserOperationLib for UserOperation;
     bytes4 constant internal MAGICVALUE = 0x1626ba7e; // EIP-1271 magic value
 
-    uint96 private _nonce;
-
     bytes32 public hmua;
 
     address[] private allOwner;
@@ -37,10 +35,6 @@ contract CrescentWallet is BaseAccount, Initializable {
     address public dkimVerifier;
 
     EntryPointController public entryPointController;
-
-    function nonce() public view virtual override returns (uint256) {
-        return _nonce;
-    }
 
     function entryPoint() public view virtual override returns (IEntryPoint) {
         return IEntryPoint(entryPointController.getEntryPoint());
@@ -137,11 +131,6 @@ contract CrescentWallet is BaseAccount, Initializable {
                 revert(add(result,32), mload(result))
             }
         }
-    }
-
-    /// implement template method of BaseWallet
-    function _validateAndUpdateNonce(UserOperation calldata userOp) internal override {
-        require(_nonce++ == userOp.nonce, "wallet: invalid nonce");
     }
 
     /// implement template method of BaseWallet
