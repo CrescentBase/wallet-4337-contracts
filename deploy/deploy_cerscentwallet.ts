@@ -454,7 +454,7 @@ const updateWallet: DeployFunction = async function (hre: HardhatRuntimeEnvironm
 
   const walletAddress = wallet.address;
   console.log(`Deployed CrescentWallet contract to: ${walletAddress}, gas used ${walletRep.gasUsed}`)
-  // const walletAddress = '0x60465b8f77D8Bc4B4eF906923640f01439c8D9f9';
+  // const walletAddress = '0x7B3ac10296330Fd4E9374968262856A7fD975E7e';
 
   const walletControllerAddress = '0x95d76Dd0Df6F3d41C7d5247D2d8B05b5f1006215';
 
@@ -471,11 +471,11 @@ const updateWallet: DeployFunction = async function (hre: HardhatRuntimeEnvironm
 // export default verifyCrescentWallet
 // export default setEntryPoint
 // export default addStake
-export default depositTo
+// export default depositTo
 
 // export default addDkim
 
 // export default unlockStake
 // export default withdrawStakeAndDeposit
 
-// export default updateWallet
+export default updateWallet

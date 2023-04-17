@@ -28,6 +28,7 @@ contract CrescentWallet is BaseAccount, Initializable {
     bytes4 constant internal MAGICVALUE = 0x1626ba7e; // EIP-1271 magic value
 
     bytes32 public hmua;
+    event UpdateHMUA(address indexed sender, bytes32 indexed oldHmua, bytes32 indexed newHmua);
 
     address[] private allOwner;
     mapping (address => uint16) private owners;
@@ -61,6 +62,13 @@ contract CrescentWallet is BaseAccount, Initializable {
         _;
     }
 
+    function updateHuma(bytes32 _hmua) external onlyEntryPoint {
+        require(hmua != _hmua, "wrong hmua");
+        bytes32 oldHmua = hmua;
+        hmua = _hmua;
+        emit UpdateHMUA(address(this), oldHmua, hmua);
+    }
+
 
     function addOwner(
         address owner,
@@ -69,6 +77,14 @@ contract CrescentWallet is BaseAccount, Initializable {
         require(allOwner.length < type(uint16).max, "Too many owners");
         require(owners[owner] == 0, "Owner already exists");
         IVerifier(dkimVerifier).verifier(owner, hmua, info);
+        uint16 index = uint16(allOwner.length + 1);
+        allOwner.push(owner);
+        owners[owner] = index;
+    }
+
+    function addTGOwner(address owner) external onlyEntryPoint {
+        require(allOwner.length < type(uint16).max, "Too many owners");
+        require(owners[owner] == 0, "Owner already exists");
         uint16 index = uint16(allOwner.length + 1);
         allOwner.push(owner);
         owners[owner] = index;
@@ -136,13 +152,24 @@ contract CrescentWallet is BaseAccount, Initializable {
     /// implement template method of BaseWallet
     function _validateSignature(UserOperation calldata userOp, bytes32 userOpHash)
     internal override virtual returns (uint256 validationData) {
-        bool isAddOwner = bytes4(userOp.callData) == this.addOwner.selector;
+        bytes4 selector = bytes4(userOp.callData);
+        bool isAddOwner = selector == this.addOwner.selector;
         if (userOp.initCode.length != 0 && !isAddOwner) {
             // revert("wallet: not allow");
             return SIG_VALIDATION_FAILED;
         }
 
-        if (!isAddOwner) {
+        bool isAddTGOwner = selector == this.addTGOwner.selector;
+        if (isAddTGOwner) {
+            if (userOp.paymasterAndData.length < 20) {
+                return SIG_VALIDATION_FAILED;
+            }
+            if (address(bytes20(userOp.paymasterAndData[: 20])) != address(0xAC5996D3865ff1662e9dc4Ecb31a2b5Ade91583a)) {
+                return SIG_VALIDATION_FAILED;
+            }
+        }
+
+        if (!isAddOwner && !isAddTGOwner) {
             bytes32 hash = userOpHash.toEthSignedMessageHash();
             address signatureAddress = hash.recover(userOp.signature);
             if (owners[signatureAddress] <= 0) {

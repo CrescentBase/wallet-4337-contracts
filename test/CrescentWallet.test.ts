@@ -383,6 +383,26 @@ describe('test CrescentWallet', function () {
 
     });
 
+    it("CrescentWallet updateHuma", async function name() {
+      expect(await walletFactory.attach(preAddr).hmua(), 'checke hmua').to.eq(hmua)
+
+      let upgradeDelegateCalldata = await wallet.populateTransaction.updateHuma(salt).then(tx => tx.data!);
+
+      const op = await fillAndSign({
+              sender: preAddr,
+              callData: upgradeDelegateCalldata,
+              callGasLimit: 2e6,
+          }, testWalletOwner, entryPoint);
+
+      const rcpt = await entryPoint.handleOps([op], prefundAccountAddress, {
+              gasLimit: 1e7
+            }).then(async t => await t.wait());
+
+      console.log(rcpt.logs);
+
+      expect(await walletFactory.attach(preAddr).hmua(), 'checke hmua').to.eq(salt.toLowerCase())
+  });
+
 
     it("CrescentPaymaster paymaster support wallet", async function name() {
         let paymasterView = await paymasterFactory.attach(paymasterProxy.address);
