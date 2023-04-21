@@ -386,7 +386,7 @@ const depositTo: DeployFunction = async function (hre: HardhatRuntimeEnvironment
 
   try {
     console.log(`depositTo start`);
-    const depositToRep = await (await paymasterFactory.attach(paymasterProxyAddress).deposit({ value: ethers.utils.parseEther('0.13') })).wait(WAIT_BLOCK_CONFIRMATIONS);
+    const depositToRep = await (await paymasterFactory.attach(paymasterProxyAddress).deposit({ value: ethers.utils.parseEther('90') })).wait(WAIT_BLOCK_CONFIRMATIONS);
     console.log(`depositTo end, gas used`, depositToRep.gasUsed);
   } catch (e) {
       console.log("depositTo", e);
@@ -471,11 +471,11 @@ const updateWallet: DeployFunction = async function (hre: HardhatRuntimeEnvironm
 // export default verifyCrescentWallet
 // export default setEntryPoint
 // export default addStake
-// export default depositTo
+export default depositTo
 
 // export default addDkim
 
 // export default unlockStake
 // export default withdrawStakeAndDeposit
 
-export default updateWallet
+// export default updateWallet

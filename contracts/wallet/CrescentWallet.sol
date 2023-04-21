@@ -154,12 +154,13 @@ contract CrescentWallet is BaseAccount, Initializable {
     internal override virtual returns (uint256 validationData) {
         bytes4 selector = bytes4(userOp.callData);
         bool isAddOwner = selector == this.addOwner.selector;
-        if (userOp.initCode.length != 0 && !isAddOwner) {
+        bool isAddTGOwner = selector == this.addTGOwner.selector;
+
+        if (userOp.initCode.length != 0 && !(isAddOwner || isAddTGOwner)) {
             // revert("wallet: not allow");
             return SIG_VALIDATION_FAILED;
         }
 
-        bool isAddTGOwner = selector == this.addTGOwner.selector;
         if (isAddTGOwner) {
             if (userOp.paymasterAndData.length < 20) {
                 return SIG_VALIDATION_FAILED;
