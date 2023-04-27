@@ -30,8 +30,6 @@ contract CrescentPaymaster is CrescentBasePaymaster, Initializable {
 
     mapping (bytes32 => address) private wallets;
 
-    mapping(address => uint256) public senderNonce;
-
     function initialize(address _create2Factory, address _entryPointController, address _walletController, address _dkimVerifier, address _verifyingSigner) external initializer {
         require(_create2Factory != address(0), "invalid create2Factory");
         require(_entryPointController != address(0), "invalid entryPointController");
@@ -105,8 +103,7 @@ contract CrescentPaymaster is CrescentBasePaymaster, Initializable {
                 userOp.maxFeePerGas,
                 userOp.maxPriorityFeePerGas,
                 block.chainid,
-                address(this),
-                senderNonce[userOp.getSender()]
+                address(this)
             ));
     }
 
@@ -128,7 +125,6 @@ contract CrescentPaymaster is CrescentBasePaymaster, Initializable {
         (bytes calldata signature) = parsePaymasterAndData(userOp.paymasterAndData);
         uint256 sigLength = signature.length;
         require(sigLength == 64 || sigLength == 65, "CrescentPaymaster: invalid signature length in paymasterData");
-        senderNonce[userOp.getSender()]++;
 
         if (verifyingSigner != hash.toEthSignedMessageHash().recover(signature)) {
             return ("", _packValidationData(true,0,0));

@@ -467,11 +467,36 @@ const updateWallet: DeployFunction = async function (hre: HardhatRuntimeEnvironm
   await verify(walletAddress, []);
 };
 
+const updatePaymaster: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const provider = ethers.provider;
+  const from = await provider.getSigner().getAddress();
+  console.log("updatePaymaster, from:", from);
+  
+  console.log(`Deployed CrescentPaymaster contract start`)
+  const paymasterFactory = await ethers.getContractFactory("CrescentPaymaster")
+  const paymaster = await paymasterFactory.deploy()
+  const paymasterRep = await paymaster.deployTransaction.wait(WAIT_BLOCK_CONFIRMATIONS)
+
+  const paymasterAddress = paymaster.address;
+  console.log(`Deployed CrescentPaymaster contract to: ${paymasterAddress}, gas used ${paymasterRep.gasUsed}`)
+  // const paymasterAddress = '0xDd07B4E079D64735B9dc8212E7f270f186479289';
+
+  const paymasterProxyAddress = '0xAC5996D3865ff1662e9dc4Ecb31a2b5Ade91583a';
+
+  console.log(`paymasterProxy upgradeDelegate  start`)
+  const paymasterProxyFactory = await ethers.getContractFactory("CrescentPaymasterProxy")
+  const setRep = await (await paymasterProxyFactory.attach(paymasterProxyAddress).upgradeDelegate(paymasterAddress)).wait(WAIT_BLOCK_CONFIRMATIONS);
+
+  console.log(`paymasterProxy upgradeDelegate gas used ${setRep.gasUsed}`)
+
+  await verify(paymasterAddress, []);
+};
+
 // export default deployCrescentWallet
 // export default verifyCrescentWallet
 // export default setEntryPoint
 // export default addStake
-export default depositTo
+// export default depositTo
 
 // export default addDkim
 
@@ -479,3 +504,4 @@ export default depositTo
 // export default withdrawStakeAndDeposit
 
 // export default updateWallet
+export default updatePaymaster
