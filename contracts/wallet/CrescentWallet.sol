@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "../core/BaseAccount.sol";
 import "../interfaces/UserOperation.sol";
@@ -21,7 +22,7 @@ interface IVerifier{
     ) external view;
 }
 
-contract CrescentWallet is BaseAccount, Initializable {
+contract CrescentWallet is BaseAccount, Initializable, ERC1155Holder {
 
     using ECDSA for bytes32;
     using UserOperationLib for UserOperation;
