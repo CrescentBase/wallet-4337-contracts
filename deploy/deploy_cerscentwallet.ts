@@ -492,6 +492,57 @@ const updatePaymaster: DeployFunction = async function (hre: HardhatRuntimeEnvir
   await verify(paymasterAddress, []);
 };
 
+
+const test2930: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const provider = ethers.provider;
+  const from = await provider.getSigner().getAddress();
+  console.log("test2930, from:", from);
+  const testTransferFactory = await ethers.getContractFactory("TestTransfer");
+    
+  console.log(`Deployed TestTransfer contract start`)
+  const testTransfer = await testTransferFactory.deploy();
+  const testTransferRep = await testTransfer.deployTransaction.wait(WAIT_BLOCK_CONFIRMATIONS);
+  const testTransferAddress = testTransfer.address;
+  console.log(`Deployed TestTransfer contract to: ${testTransferAddress}, gas used ${testTransferRep.gasUsed}`)
+
+  await verify(testTransferAddress, []);
+
+  // const testTransferAddress = '0x0d87bcdA3f3803022811A73Cc8C88e403550a71C';
+
+  const fromAddress = `0xaeB34c0e710BdCB9feA5153935271631996c0143`;
+  const walletProxyFactory = await ethers.getContractFactory("CrescentWalletProxy")
+  const walletAddress = await walletProxyFactory.attach(fromAddress).getImplementation();
+  console.log("getImplementation walletAddress", walletAddress);
+
+  const accessList = [
+    {
+      address: fromAddress,
+      storageKeys: [
+        "0xa5a17d1ea6249d0fb1885c3256371b6d5f681c9e9d78ab6541528b3876ccbf4c",//_AUTO_UPDATE_SLOT
+        "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",//_IMPLEMENTATION_SLOT
+        "0x2374cd50a5aadd10053041ecb594cc361d7af780edf0e72f6583c2ea6919be93"//_ADDRESS_CONTROLLER_SLOT
+      ]
+    },
+    {
+      address: `${walletAddress}`,
+      storageKeys: []
+    }
+  ];
+
+  const amount = ethers.utils.parseEther('0.000001');
+  try {
+    console.log(`transfer 111 start`)
+    const rep = await (await testTransferFactory.attach(testTransferAddress).transferTo(fromAddress,  amount, { value: amount })).wait(WAIT_BLOCK_CONFIRMATIONS);
+    console.log("transfer 111 end", JSON.stringify(rep));
+  } catch(e) {
+    console.log("transfer 111 e", e);
+    console.log(`transfer 222 start`)
+    const rep = await (await testTransferFactory.attach(testTransferAddress).transferTo(fromAddress,  amount, { value: amount, accessList: accessList })).wait(WAIT_BLOCK_CONFIRMATIONS);
+    console.log("transfer 222 end", JSON.stringify(rep));
+  }
+
+};
+
 // export default deployCrescentWallet
 // export default verifyCrescentWallet
 // export default setEntryPoint
@@ -504,4 +555,5 @@ const updatePaymaster: DeployFunction = async function (hre: HardhatRuntimeEnvir
 // export default withdrawStakeAndDeposit
 
 // export default updateWallet
-export default updatePaymaster
+// export default updatePaymaster
+export default test2930;

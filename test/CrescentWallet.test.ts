@@ -38,7 +38,8 @@ import {
     CrescentWallet__factory,
     CrescentPaymasterProxy__factory,
     CrescentPaymaster__factory,
-    DKIMVerifier__factory
+    DKIMVerifier__factory,
+    TestTransfer
   } from '../typechain'
 import { isHexString, toAscii } from 'ethereumjs-util'
 import { Create2Factory_EIP2470 } from '../src/Create2Factory_EIP2470'
@@ -76,6 +77,8 @@ describe('test CrescentWallet', function () {
     let walletFactory: CrescentWallet__factory;
     let paymasterProxyFactory: CrescentPaymasterProxy__factory;
     let paymasterFactory: CrescentPaymaster__factory;
+
+    let testTransfer: TestTransfer;
 
 
     let entryPointController: EntryPointController;
@@ -155,6 +158,9 @@ describe('test CrescentWallet', function () {
 
         // console.log("initCode", initCode);
         preAddr = await entryPoint.callStatic.getSenderAddress(initCode).catch(e => e.errorArgs.sender);
+
+        let testTransferFactory = await ethers.getContractFactory("TestTransfer");
+        testTransfer = await testTransferFactory.deploy();
 
     })
 
@@ -333,6 +339,31 @@ describe('test CrescentWallet', function () {
 
         expect((await paymasterFactory.attach(paymasterProxy.address).getWallet(hmua)).toLowerCase(), "getWallet").to.equal(op.sender.toLowerCase());
     })
+
+    it("CrescentWallet test transfer", async function name() {
+      const accessList = [
+        {
+          address: `${preAddr}`,
+          storageKeys: [
+            "0xa5a17d1ea6249d0fb1885c3256371b6d5f681c9e9d78ab6541528b3876ccbf4c",//_AUTO_UPDATE_SLOT
+            "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",//_IMPLEMENTATION_SLOT
+            "0x2374cd50a5aadd10053041ecb594cc361d7af780edf0e72f6583c2ea6919be93"//_ADDRESS_CONTROLLER_SLOT
+          ]
+        },
+        {
+          address: `${wallet.address}`,
+          storageKeys: []
+        },
+        {
+          address: `${walletController.address}`,
+          storageKeys: []
+        }
+      ];
+
+      const amount = parseEther('1');
+      const rep = await (await testTransfer.transferTo(preAddr,  amount, { value: amount, accessList: accessList })).wait();
+      console.log("transfer end", JSON.stringify(rep));
+    });
 
     it("CrescentPaymaster test tranfer", async function name() {
       await (await ethersSigner.sendTransaction({
