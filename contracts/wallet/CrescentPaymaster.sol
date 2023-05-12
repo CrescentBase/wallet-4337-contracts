@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../interfaces/IEntryPoint.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "./CrescentWalletProxy.sol";
+import "./EntryPointController.sol";
 import "./CrescentBasePaymaster.sol";
 
 contract CrescentPaymaster is CrescentBasePaymaster, Initializable {
@@ -24,13 +24,14 @@ contract CrescentPaymaster is CrescentBasePaymaster, Initializable {
 
     address public dkimVerifier;
 
-    bytes32 public crescentWallet;
+    bytes32 public crescentWalletHash;
 
     mapping (address => bool) private supportWallets;
 
     mapping (bytes32 => address) private wallets;
 
-    function initialize(address _create2Factory, address _entryPointController, address _walletController, address _dkimVerifier, address _verifyingSigner) external initializer {
+
+    function initialize(address _create2Factory, address _entryPointController, address _walletController, address _dkimVerifier, address _verifyingSigner, bytes32 _crescentWalletHash) external initializer {
         require(_create2Factory != address(0), "invalid create2Factory");
         require(_entryPointController != address(0), "invalid entryPointController");
         require(_walletController != address(0), "invalid walletController");
@@ -42,7 +43,7 @@ contract CrescentPaymaster is CrescentBasePaymaster, Initializable {
         entryPointController = EntryPointController(payable(_entryPointController));
 
         verifyingSigner = _verifyingSigner;
-        crescentWallet = _crescentWallet();
+        crescentWalletHash = _crescentWalletHash;
         walletController = _walletController;
         dkimVerifier = _dkimVerifier;
     }
@@ -66,12 +67,9 @@ contract CrescentPaymaster is CrescentBasePaymaster, Initializable {
         walletController = _walletController;
     }
 
-    function _crescentWallet() internal view virtual returns (bytes32) {
-        return keccak256(type(CrescentWalletProxy).creationCode);
-    }
-
-    function getCrescentWalletProxy() public view virtual returns (bytes memory) {
-        return type(CrescentWalletProxy).creationCode;
+    function setCrescentWalletHash(bytes32 _crescentWalletHash) public onlyOwner {
+        require(crescentWalletHash != _crescentWalletHash);
+        crescentWalletHash = _crescentWalletHash;
     }
 
     function getWallet(bytes32 salt) public view returns (address) {
@@ -131,7 +129,7 @@ contract CrescentPaymaster is CrescentBasePaymaster, Initializable {
         }
 
         if (userOp.initCode.length > 0) {
-            bytes32 hmua = bytes32(userOp.initCode[userOp.initCode.length - 34 :]);
+            bytes32 hmua = bytes32(userOp.initCode[userOp.initCode.length - 40 :]);
             return (abi.encode(hmua, userOp.getSender()), _packValidationData(false,0,0));
         }
         return ("", _packValidationData(false,0,0));
@@ -144,16 +142,16 @@ contract CrescentPaymaster is CrescentBasePaymaster, Initializable {
         address factory = address(bytes20(userOp.initCode[0 : 20]));
         require(create2Factory == factory, "wrong factory in constructor");
 
-        bytes32 bytecodeHash = keccak256(userOp.initCode[120 : userOp.initCode.length - 130]);
-        require(crescentWallet == bytecodeHash, "CrescentPaymaster: unknown wallet constructor");
+        bytes32 bytecodeHash = keccak256(userOp.initCode[120 : userOp.initCode.length - 136]);
+        require(crescentWalletHash == bytecodeHash, "CrescentPaymaster: unknown wallet constructor");
 
-        bytes32 entryPointParam = bytes32(userOp.initCode[userOp.initCode.length - 130 :]);
+        bytes32 entryPointParam = bytes32(userOp.initCode[userOp.initCode.length - 136 :]);
         require(address(uint160(uint256(entryPointParam))) == address(entryPointController), "wrong entryPointController in constructor");
 
-        bytes32 walletControllerParam = bytes32(userOp.initCode[userOp.initCode.length - 98 :]);
+        bytes32 walletControllerParam = bytes32(userOp.initCode[userOp.initCode.length - 104 :]);
         require(address(uint160(uint256(walletControllerParam))) == walletController, "wrong wallet controller in constructor");
 
-        bytes32 dkimVerifierParam = bytes32(userOp.initCode[userOp.initCode.length - 66 :]);
+        bytes32 dkimVerifierParam = bytes32(userOp.initCode[userOp.initCode.length - 72 :]);
         require(address(uint160(uint256(dkimVerifierParam))) == dkimVerifier, "wrong dkim verifier in constructor");
     }
 

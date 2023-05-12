@@ -51,7 +51,6 @@ contract CrescentWallet is BaseAccount, Initializable, ERC1155Holder {
     }
 
     // solhint-disable-next-line no-empty-blocks
-    receive() external payable {}
 
     modifier onlyAdmin() {
         require(msg.sender == address(this) || msg.sender == address(entryPoint()), "not admin");
@@ -166,7 +165,7 @@ contract CrescentWallet is BaseAccount, Initializable, ERC1155Holder {
             if (userOp.paymasterAndData.length < 20) {
                 return SIG_VALIDATION_FAILED;
             }
-            if (address(bytes20(userOp.paymasterAndData[: 20])) != address(0xAC5996D3865ff1662e9dc4Ecb31a2b5Ade91583a)) {
+            if (address(bytes20(userOp.paymasterAndData[: 20])) != address(0xe33C3BBa47b0abB74DD2EF6C07e1b0011Ab79dF8)) {
                 return SIG_VALIDATION_FAILED;
             }
         }

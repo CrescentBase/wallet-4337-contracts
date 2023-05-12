@@ -32,6 +32,7 @@ contract CrescentWalletProxy is Proxy, ERC1967Upgrade {
         Address.functionDelegateCall(implementation, abi.encodeWithSignature("initialize(address,address,bytes32)", entryPointController, dkimVerifier, hmua));
     }
 
+    receive() override external payable virtual {}
 
     function upgradeDelegate(address newDelegateAddress) public {
         require(msg.sender == getEntryPoint());

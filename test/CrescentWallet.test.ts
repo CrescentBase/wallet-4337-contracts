@@ -17,7 +17,7 @@ import {
     checkForGeth, calcGasUsage, deployEntryPoint, checkForBannedOps, createAddress, ONE_ETH,
   } from './testutils'
 
-import { BytesLike, parseEther, arrayify, hexConcat } from 'ethers/lib/utils'
+import { BytesLike, parseEther, arrayify, hexConcat, keccak256 } from 'ethers/lib/utils'
 
 
 
@@ -102,6 +102,8 @@ describe('test CrescentWallet', function () {
     let preAddr: string;
     let hmua: string;
 
+    let crescentWalletHash: string;
+
     before(async function () {
         testWalletOwner = new ethers.Wallet(testPrivateKey, ethers.provider);
         
@@ -143,20 +145,24 @@ describe('test CrescentWallet', function () {
         walletProxyFactory = await ethers.getContractFactory("CrescentWalletProxy");
         walletProxy = await walletProxyFactory.deploy(entryPointController.address, walletController.address, dkimVerifierProxy.address, "0x0000000000000000000000000000000000000000000000000000000000000000");
 
-
         paymasterFactory = await ethers.getContractFactory("CrescentPaymaster");
         paymaster = await paymasterFactory.deploy();
 
+        crescentWalletHash = keccak256(walletProxyFactory.bytecode);
+        console.log("crescentWalletHash", crescentWalletHash);
 
         paymasterProxyFactory = await ethers.getContractFactory("CrescentPaymasterProxy");
-        paymasterProxy = await paymasterProxyFactory.deploy(paymaster.address, Create2Factory_EIP2470.contractAddress, entryPointController.address, walletController.address, dkimVerifierProxy.address);
+        paymasterProxy = await paymasterProxyFactory.deploy(paymaster.address, Create2Factory_EIP2470.contractAddress, entryPointController.address, walletController.address, dkimVerifierProxy.address, prefundAccountAddress, crescentWalletHash);
 
         initCode = WalletConstructor(entryPointController.address, walletController.address, dkimVerifierProxy.address, hmua);
+
         console.log("wallet dkimVerifierProxy:",  dkimVerifierProxy.address);
         initCode = await create2Factory.getDeployTransactionCallData(initCode);
         initCode = hexConcat([Create2Factory_EIP2470.contractAddress, initCode]);
 
-        // console.log("initCode", initCode);
+        console.log("bytecode", walletProxyFactory.bytecode);
+        // console.log("initCode getCrescentWalletProxy", await paymaster.getCrescentWalletProxy());
+
         preAddr = await entryPoint.callStatic.getSenderAddress(initCode).catch(e => e.errorArgs.sender);
 
         let testTransferFactory = await ethers.getContractFactory("TestTransfer");
@@ -195,6 +201,7 @@ describe('test CrescentWallet', function () {
       expect(await paymaster.dkimVerifier(), "dkimVerifier").to.equal(dkimVerifierProxy.address);
 
       // console.log('getCrescentWalletProxy:', await paymaster.getCrescentWalletProxy());
+      expect(await paymaster.crescentWalletHash(), "crescentWalletHash").to.equal(crescentWalletHash);
     })
 
 
@@ -340,31 +347,6 @@ describe('test CrescentWallet', function () {
         expect((await paymasterFactory.attach(paymasterProxy.address).getWallet(hmua)).toLowerCase(), "getWallet").to.equal(op.sender.toLowerCase());
     })
 
-    it("CrescentWallet test transfer", async function name() {
-      const accessList = [
-        {
-          address: `${preAddr}`,
-          storageKeys: [
-            "0xa5a17d1ea6249d0fb1885c3256371b6d5f681c9e9d78ab6541528b3876ccbf4c",//_AUTO_UPDATE_SLOT
-            "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",//_IMPLEMENTATION_SLOT
-            "0x2374cd50a5aadd10053041ecb594cc361d7af780edf0e72f6583c2ea6919be93"//_ADDRESS_CONTROLLER_SLOT
-          ]
-        },
-        {
-          address: `${wallet.address}`,
-          storageKeys: []
-        },
-        {
-          address: `${walletController.address}`,
-          storageKeys: []
-        }
-      ];
-
-      const amount = parseEther('1');
-      const rep = await (await testTransfer.transferTo(preAddr,  amount, { value: amount, accessList: accessList })).wait();
-      console.log("transfer end", JSON.stringify(rep));
-    });
-
     it("CrescentPaymaster test tranfer", async function name() {
       await (await ethersSigner.sendTransaction({
         to: preAddr,
@@ -457,4 +439,28 @@ describe('test CrescentWallet', function () {
         expect(await walletProxyFactory.attach(preAddr).getImplementation(), "getImplementation").to.equal(paymaster.address);
     });
 
+    it("CrescentWallet test transferTo", async function name() {
+      // const accessList = [
+      //   {
+      //     address: `${preAddr}`,
+      //     storageKeys: [
+      //       "0xa5a17d1ea6249d0fb1885c3256371b6d5f681c9e9d78ab6541528b3876ccbf4c",//_AUTO_UPDATE_SLOT
+      //       "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",//_IMPLEMENTATION_SLOT
+      //       "0x2374cd50a5aadd10053041ecb594cc361d7af780edf0e72f6583c2ea6919be93"//_ADDRESS_CONTROLLER_SLOT
+      //     ]
+      //   },
+      //   {
+      //     address: `${wallet.address}`,
+      //     storageKeys: []
+      //   },
+      //   {
+      //     address: `${walletController.address}`,
+      //     storageKeys: []
+      //   }
+      // ];
+
+      const amount = parseEther('1');
+      const rep = await (await testTransfer.transferTo(preAddr,  amount, { value: amount })).wait();
+      console.log("transferTo end", JSON.stringify(rep));
+    });
 });
